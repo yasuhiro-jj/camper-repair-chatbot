@@ -269,6 +269,22 @@ def main():
     .stApp > div[data-testid="stHeader"] {display: none !important;}
     .stApp > div[data-testid="stHeaderActions"] {display: none !important;}
     
+    /* 右下のユーザー名アイコンと「hosted with streamlit」を非表示 */
+    .stApp > div[data-testid="stUserInfo"] {display: none !important;}
+    .stApp > div[data-testid="stUserAvatar"] {display: none !important;}
+    
+    /* Streamlitのブランディング要素を非表示 */
+    .stApp > div[data-testid="stStreamlitBranding"] {display: none !important;}
+    .stApp > div[data-testid="stStreamlitLogo"] {display: none !important;}
+    
+    /* 「hosted with streamlit」テキストを非表示 */
+    .stApp > div[data-testid="stStreamlitText"] {display: none !important;}
+    .stApp > div[data-testid="stStreamlitLink"] {display: none !important;}
+    
+    /* その他の右下要素を非表示 */
+    .stApp > div[data-testid="stBottomBlock"] {display: none !important;}
+    .stApp > div[data-testid="stBottomContainer"] {display: none !important;}
+    
     /* メインコンテンツの上部マージンを調整 */
     .main .block-container {
         padding-top: 1rem;
