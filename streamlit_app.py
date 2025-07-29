@@ -332,8 +332,8 @@ def main():
 
     """, unsafe_allow_html=True)
     
-    # タイトルを表示（中央揃え）
-    st.markdown("<h2 style='text-align: center;'>🔧 キャンピングカー修理専門AIチャット</h2>", unsafe_allow_html=True)
+    # タイトルを表示（中央揃え、改行付き）
+    st.markdown("<h2 style='text-align: center;'>🔧 キャンピングカー修理専門<br>AIチャット</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; font-style: italic;'>経験豊富なAIがキャンピングカーの修理について詳しくお答えします</p>", unsafe_allow_html=True)
     
     # サイドバー
