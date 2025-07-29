@@ -218,7 +218,7 @@ def build_workflow():
 
 # === メインアプリケーション ===
 def main():
-    # レスポンシブなタイトル（スマホ対応）
+    # レスポンシブなタイトル（スマホ対応）とヘッダー非表示
     st.markdown("""
     <style>
     @media (max-width: 768px) {
@@ -229,6 +229,32 @@ def main():
         .mobile-title p {
             font-size: 0.8rem !important;
         }
+    }
+    
+    /* 右上のメニュー要素を非表示 */
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* ハンバーガーメニューを非表示 */
+    .stDeployButton {display: none;}
+    
+    /* ヘッダー要素を非表示 */
+    .stApp > header {display: none;}
+    
+    /* 右上のツールバー要素を非表示 */
+    .stApp > div[data-testid="stToolbar"] {display: none;}
+    .stApp > div[data-testid="stToolbarActions"] {display: none;}
+    
+    /* メニューボタンを非表示 */
+    .stApp > div[data-testid="stMenuButton"] {display: none;}
+    .stApp > div[data-testid="stMenu"] {display: none;}
+    
+    /* ヘッダーアクションを非表示 */
+    .stApp > div[data-testid="stHeaderActions"] {display: none;}
+    
+    /* メインコンテンツの上部マージンを調整 */
+    .main .block-container {
+        padding-top: 1rem;
     }
     </style>
     <div class="mobile-title" style="text-align: center;">
