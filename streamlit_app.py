@@ -264,6 +264,14 @@ def main():
                     .mobile-title p {
                         font-size: 0.8rem !important;
                     }
+                    /* スマホでのタイトル文字サイズ調整 */
+                    h2 {
+                        font-size: 1.2rem !important;
+                        line-height: 1.2 !important;
+                    }
+                    p, em {
+                        font-size: 0.8rem !important;
+                    }
                 }
     
     /* 右上のメニュー要素を非表示 */
