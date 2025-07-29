@@ -322,11 +322,11 @@ def main():
     }
     </style>
 
-                    <div class="mobile-title" style="text-align: center;">
-                    <h1 style="font-size: 1.8rem; margin-bottom: 0.5rem;">🔧 キャンピングカー修理専門AIチャット</h1>
-                    <p style="font-size: 0.9rem; color: #666; margin-top: 0;">経験豊富なAIがキャンピングカーの修理について詳しくお答えします</p>
-                </div>
     """, unsafe_allow_html=True)
+    
+    # タイトルを表示
+    st.markdown("## 🔧 キャンピングカー修理専門AIチャット")
+    st.markdown("*経験豊富なAIがキャンピングカーの修理について詳しくお答えします*")
     
     # サイドバー
     with st.sidebar:
