@@ -296,41 +296,45 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # サイドバー
-    with st.sidebar:
-        st.header("📋 クイック質問")
-        
-        if st.button("🔋 バッテリー上がり"):
+    # クイック質問をメインエリアに表示（スマホ対応）
+    st.markdown("### 📋 クイック質問")
+    
+    # ボタンを横並びで表示
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("🔋 バッテリー上がり", use_container_width=True):
             prompt = "バッテリーが上がってエンジンが始動しない時の対処法を教えてください"
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.rerun()
         
-        if st.button("🚰 水道ポンプ"):
+        if st.button("🚰 水道ポンプ", use_container_width=True):
             prompt = "水道ポンプから水が出ない時の修理方法は？"
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.rerun()
         
-        if st.button("🔥 ガスコンロ"):
+        if st.button("🔥 ガスコンロ", use_container_width=True):
             prompt = "ガスコンロが点火しない時の対処法を教えてください"
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.rerun()
-        
-        if st.button("🧊 冷蔵庫"):
+    
+    with col2:
+        if st.button("🧊 冷蔵庫", use_container_width=True):
             prompt = "冷蔵庫が冷えない時の修理方法は？"
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.rerun()
         
-        if st.button("🔧 定期点検"):
+        if st.button("🔧 定期点検", use_container_width=True):
             prompt = "キャンピングカーの定期点検項目とスケジュールは？"
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.rerun()
         
-        st.divider()
-        
-        if st.button("🆕 新しい会話を開始"):
+        if st.button("🆕 新しい会話", use_container_width=True):
             st.session_state.messages = []
             st.session_state.conversation_id = str(uuid.uuid4())
             st.rerun()
+    
+    st.divider()
     
     # メインエリア
     # チャット履歴の表示
