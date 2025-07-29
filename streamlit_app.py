@@ -17,7 +17,8 @@ import glob
 st.set_page_config(
     page_title="キャンピングカー修理専門AIチャット",
     page_icon="🔧",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # === セッション状態の初期化 ===
@@ -284,6 +285,23 @@ def main():
     /* その他の右下要素を非表示 */
     .stApp > div[data-testid="stBottomBlock"] {display: none !important;}
     .stApp > div[data-testid="stBottomContainer"] {display: none !important;}
+    
+    /* より強力なセレクターで右下要素を非表示 */
+    footer {display: none !important;}
+    .stApp footer {display: none !important;}
+    .stApp > footer {display: none !important;}
+    
+    /* ユーザー情報とブランディングを強制的に非表示 */
+    [data-testid="stUserInfo"] {display: none !important;}
+    [data-testid="stUserAvatar"] {display: none !important;}
+    [data-testid="stStreamlitBranding"] {display: none !important;}
+    [data-testid="stStreamlitLogo"] {display: none !important;}
+    [data-testid="stStreamlitText"] {display: none !important;}
+    [data-testid="stStreamlitLink"] {display: none !important;}
+    
+    /* 右下のすべての要素を非表示 */
+    .stApp > div:last-child {display: none !important;}
+    .stApp > div[style*="position: fixed"] {display: none !important;}
     
     /* メインコンテンツの上部マージンを調整 */
     .main .block-container {
