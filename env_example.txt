@@ -1,0 +1,8 @@
+# 環境変数設定例
+# このファイルを.envにリネームして、実際のAPIキーを設定してください
+
+# OpenAI API設定
+OPENAI_API_KEY=your_openai_api_key_here
+ 
+# SerpAPI設定
+SERP_API_KEY=your_serpapi_key_here 

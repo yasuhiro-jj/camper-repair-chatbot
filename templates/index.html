@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>キャンピングカー修理専門AIチャット</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      h1 {
+        text-align: center;
+        color: white;
+        margin-bottom: 10px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      }
+
+      .subtitle {
+        text-align: center;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 30px;
+        font-size: 1.1em;
+      }
+
+      .chat-header {
+        background: rgba(255,255,255,0.95);
+        padding: 15px 20px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      }
+
+      .new-chat-btn {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+      }
+
+      .new-chat-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52,152,219,0.4);
+      }
+
+      .chat-info {
+        color: #666;
+        font-weight: bold;
+      }
+
+      .chat-container {
+        flex: 1;
+        background: rgba(255,255,255,0.95);
+        border-radius: 15px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+      }
+
+      .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        max-height: 60vh;
+      }
+
+      .message {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .message.user {
+        justify-content: flex-end;
+      }
+
+      .message.ai {
+        justify-content: flex-start;
+      }
+
+      .message-content {
+        max-width: 70%;
+        padding: 15px 20px;
+        border-radius: 20px;
+        word-wrap: break-word;
+      }
+
+      .message.user .message-content {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+        border-bottom-right-radius: 5px;
+      }
+
+      .message.ai .message-content {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #e9ecef;
+        border-bottom-left-radius: 5px;
+      }
+
+      .message-time {
+        font-size: 0.8em;
+        color: #999;
+        margin-top: 5px;
+        text-align: right;
+      }
+
+      .chat-input-area {
+        padding: 20px;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+      }
+
+      .chat-form {
+        margin-bottom: 15px;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 10px;
+      }
+
+      .chat-input {
+        flex: 1;
+        padding: 15px 20px;
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        font-size: 16px;
+        outline: none;
+        transition: border-color 0.3s ease;
+      }
+
+      .chat-input:focus {
+        border-color: #3498db;
+      }
+
+      .send-btn {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        padding: 15px 20px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        transition: all 0.3s ease;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .send-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 5px 15px rgba(52,152,219,0.4);
+      }
+
+      .quick-questions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+      }
+
+      .quick-btn {
+        background: #f39c12;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+
+      .quick-btn:hover {
+        background: #e67e22;
+        transform: translateY(-2px);
+      }
+
+      .loading {
+        text-align: center;
+        color: #666;
+        font-style: italic;
+        padding: 20px;
+      }
+
+      .links-section {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #3498db;
+      }
+
+      .links-section h3 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+      }
+
+      .links-section ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .links-section li {
+        margin-bottom: 8px;
+        padding: 8px 12px;
+        background: white;
+        border-radius: 5px;
+        border-left: 3px solid #3498db;
+      }
+
+      .links-section a {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .links-section a:hover {
+        text-decoration: underline;
+      }
+
+      /* スクロールバーのカスタマイズ */
+      .chat-messages::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .chat-messages::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+
+      .chat-messages::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+
+      .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+
+      /* レスポンシブデザイン */
+      @media (max-width: 768px) {
+        .container {
+          padding: 10px;
+        }
+
+        h1 {
+          font-size: 2em;
+        }
+
+        .chat-header {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .message-content {
+          max-width: 85%;
+        }
+
+        .quick-questions {
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>キャンピングカー修理専門AIチャット</h1>
+      <p class="subtitle">経験豊富なAIがキャンピングカーの修理について詳しくお答えします</p>
+
+      <!-- チャットヘッダー -->
+      <div class="chat-header">
+        <button onclick="startNewConversation()" class="new-chat-btn">🆕 新しい会話を開始</button>
+        <div class="chat-info">
+          <span>💬 会話型チャットボット</span>
+        </div>
+      </div>
+
+      <!-- チャットエリア -->
+      <div class="chat-container">
+        <div id="chatMessages" class="chat-messages">
+          <!-- メッセージがここに表示されます -->
+        </div>
+        
+        <!-- 入力エリア -->
+        <div class="chat-input-area">
+          <form id="questionForm" class="chat-form">
+            <div class="input-group">
+              <input
+                type="text"
+                id="question"
+                name="question"
+                placeholder="キャンピングカーの修理について質問してください..."
+                required
+                class="chat-input"
+              />
+              <button type="submit" class="send-btn">📤</button>
+            </div>
+          </form>
+          
+          <!-- クイック質問ボタン -->
+          <div class="quick-questions">
+            <button onclick="setQuestion('エンジンが始動しない場合の対処法を教えてください')" class="quick-btn">エンジンが始動しない</button>
+            <button onclick="setQuestion('給排水システムの故障時の修理方法は？')" class="quick-btn">給排水システム</button>
+            <button onclick="setQuestion('電気系統のトラブルシューティング方法')" class="quick-btn">電気系統</button>
+            <button onclick="setQuestion('定期メンテナンスのスケジュールは？')" class="quick-btn">メンテナンス</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function setQuestion(question) {
+        document.getElementById('question').value = question;
+        document.getElementById('question').focus();
+      }
+
+      function startNewConversation() {
+        // チャットメッセージをクリア
+        document.getElementById('chatMessages').innerHTML = '';
+        
+        // 新しい会話を開始
+        fetch('/start_conversation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('新しい会話を開始しました:', data.conversation_id);
+        })
+        .catch(error => {
+          console.error('エラー:', error);
+        });
+      }
+
+      function addMessage(content, isUser = false, links = null) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+        
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        
+        // メッセージ内容を処理
+        if (isUser) {
+          messageContent.textContent = content;
+        } else {
+          // AIの回答をHTML形式で処理
+          let processedContent = content
+            .replace(/【状況確認】/g, '<h3 style="color: #27ae60; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">💬 状況確認</h3>')
+            .replace(/【修理アドバイス】/g, '<h3 style="color: #2c3e50; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px;">🔧 修理アドバイス</h3>')
+            .replace(/【追加の質問】/g, '<h3 style="color: #f39c12; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #f39c12; padding-bottom: 5px;">❓ 追加の質問</h3>')
+            .replace(/【次のステップ】/g, '<h3 style="color: #9b59b6; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">🔄 次のステップ</h3>')
+            .replace(/【最後に】/g, '<h3 style="color: #e74c3c; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">📞 サポートセンター</h3>');
+          
+          // 箇条書きを処理
+          const lines = processedContent.split('\n');
+          let processedLines = [];
+          let inList = false;
+          
+          for (let line of lines) {
+            if (line.trim().startsWith('•')) {
+              if (!inList) {
+                processedLines.push('<ul style="margin: 10px 0; padding-left: 20px;">');
+                inList = true;
+              }
+              processedLines.push(`<li style="margin-bottom: 8px; padding-left: 10px; position: relative;">${line.trim()}</li>`);
+            } else {
+              if (inList) {
+                processedLines.push('</ul>');
+                inList = false;
+              }
+              processedLines.push(line);
+            }
+          }
+          
+          if (inList) {
+            processedLines.push('</ul>');
+          }
+          
+          messageContent.innerHTML = processedLines.join('\n');
+          
+          // リンクがある場合は追加
+          if (links) {
+            const linksSection = document.createElement('div');
+            linksSection.className = 'links-section';
+            linksSection.innerHTML = `
+              <h3>🔗 関連情報・リンク</h3>
+              <ul>${links}</ul>
+            `;
+            messageDiv.appendChild(linksSection);
+          }
+        }
+        
+        const messageTime = document.createElement('div');
+        messageTime.className = 'message-time';
+        messageTime.textContent = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+        
+        messageDiv.appendChild(messageContent);
+        messageDiv.appendChild(messageTime);
+        chatMessages.appendChild(messageDiv);
+        
+        // スクロールを最下部に
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function createLinksHTML(linksText) {
+        if (!linksText) return '';
+        
+        const links = linksText.split('\n').filter(link => link.trim());
+        let linksHTML = '';
+        
+        links.forEach(linkText => {
+          if (!linkText.trim()) return;
+          
+          let url = "#";
+          let displayText = linkText;
+          
+          // カテゴリとテキストを分離
+          const categoryMatch = linkText.match(/^\[(検索|動画|購入|情報)\]/);
+          if (categoryMatch) {
+            const category = categoryMatch[1];
+            const text = linkText.substring(categoryMatch[0].length + 1);
+            const searchQuery = text.replace(/^.*?: /, '').replace(/ についての詳細情報| の修理手順動画| 関連の部品・工具|専門情報$/, '');
+            
+            if (category === "検索") {
+              url = `https://www.google.com/search?q=キャンピングカー+${searchQuery.replace(/ /g, '+')}`;
+            } else if (category === "動画") {
+              url = `https://www.youtube.com/results?search_query=キャンピングカー+${searchQuery.replace(/ /g, '+')}`;
+            } else if (category === "購入") {
+              url = `https://www.amazon.co.jp/s?k=キャンピングカー+修理+部品`;
+            } else if (category === "情報") {
+              url = `https://www.google.com/search?q=キャンピングカー+修理+専門サイト`;
+            }
+            
+            displayText = linkText;
+          }
+          
+          linksHTML += `<li><a href="${url}" target="_blank" rel="noopener noreferrer">${displayText}</a></li>`;
+        });
+        
+        return linksHTML;
+      }
+
+      document.getElementById("questionForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const question = document.getElementById("question").value;
+        if (!question.trim()) return;
+
+        // ユーザーメッセージを追加
+        addMessage(question, true);
+        
+        // 入力欄をクリア
+        document.getElementById("question").value = "";
+
+        // ローディングメッセージを追加
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'message ai';
+        loadingDiv.innerHTML = `
+          <div class="message-content">
+            <div class="loading">🔧 修理アドバイスを生成中...</div>
+          </div>
+        `;
+        document.getElementById('chatMessages').appendChild(loadingDiv);
+        document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+
+        fetch("/ask", {
+          method: "POST",
+          body: new URLSearchParams({ question: question }),
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            // ローディングメッセージを削除
+            const loadingMessages = document.querySelectorAll('.message.ai .loading');
+            loadingMessages.forEach(msg => msg.parentElement.parentElement.remove());
+            
+            // AIの回答を追加
+            const linksHTML = createLinksHTML(data.links);
+            addMessage(data.answer || "回答がありませんでした。", false, linksHTML);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            // ローディングメッセージを削除
+            const loadingMessages = document.querySelectorAll('.message.ai .loading');
+            loadingMessages.forEach(msg => msg.parentElement.parentElement.remove());
+            
+            addMessage("エラーが発生しました。もう一度お試しください。", false);
+          });
+      });
+
+      // Enterキーで送信
+      document.getElementById('question').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          document.getElementById('questionForm').dispatchEvent(new Event('submit'));
+        }
+      });
+
+      // ページ読み込み時に新しい会話を開始
+      document.addEventListener('DOMContentLoaded', function() {
+        startNewConversation();
+      });
+    </script>
+  </body>
+</html>
