@@ -207,8 +207,24 @@ def build_workflow():
 
 # === メインアプリケーション ===
 def main():
-    st.title("🔧 キャンピングカー修理専門AIチャット")
-    st.markdown("経験豊富なAIがキャンピングカーの修理について詳しくお答えします")
+    # レスポンシブなタイトル（スマホ対応）
+    st.markdown("""
+    <style>
+    @media (max-width: 768px) {
+        .mobile-title h1 {
+            font-size: 1.4rem !important;
+            line-height: 1.3 !important;
+        }
+        .mobile-title p {
+            font-size: 0.8rem !important;
+        }
+    }
+    </style>
+    <div class="mobile-title" style="text-align: center;">
+        <h1 style="font-size: 1.8rem; margin-bottom: 0.5rem;">🔧 キャンピングカー修理専門AIチャット</h1>
+        <p style="font-size: 0.9rem; color: #666; margin-top: 0;">経験豊富なAIがキャンピングカーの修理について詳しくお答えします</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # サイドバー
     with st.sidebar:
