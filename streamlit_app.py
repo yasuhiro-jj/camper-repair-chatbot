@@ -21,6 +21,26 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# サイドバーを強制的に表示
+st.markdown("""
+<style>
+/* サイドバーを常に表示 */
+.stApp > div[data-testid="stSidebar"] {
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* スマホでのサイドバー表示を確保 */
+@media (max-width: 768px) {
+    .stApp > div[data-testid="stSidebar"] {
+        display: block !important;
+        width: 100% !important;
+        visibility: visible !important;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
 # === セッション状態の初期化 ===
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -255,6 +275,19 @@ def main():
     /* メインコンテンツの上部マージンを調整 */
     .main .block-container {
         padding-top: 1rem;
+    }
+    
+    /* サイドバーを常に表示 */
+    .stApp > div[data-testid="stSidebar"] {
+        display: block !important;
+    }
+    
+    /* スマホでのサイドバー表示を確保 */
+    @media (max-width: 768px) {
+        .stApp > div[data-testid="stSidebar"] {
+            display: block !important;
+            width: 100% !important;
+        }
     }
     </style>
     <div class="mobile-title" style="text-align: center;">
