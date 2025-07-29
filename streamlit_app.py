@@ -9,7 +9,7 @@ from langgraph.prebuilt import ToolNode
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from langchain_community.vectorstores import FAISS
+from langchain_community.vectorstores import DocArrayInMemorySearch
 import config
 import glob
 
@@ -71,8 +71,8 @@ def initialize_database():
         if not isinstance(doc.page_content, str):
             doc.page_content = str(doc.page_content)
     
-    # FAISSベクトルデータベースを作成
-    db = FAISS.from_documents(documents=documents, embedding=embeddings_model)
+    # DocArrayInMemorySearchベクトルデータベースを作成
+    db = DocArrayInMemorySearch.from_documents(documents=documents, embedding=embeddings_model)
     
     return db
 
@@ -129,9 +129,7 @@ def initialize_tools():
 # === RAGとプロンプトテンプレート ===
 def rag_retrieve(question: str, db):
     """RAGで関連文書を取得"""
-    embeddings_model = OpenAIEmbeddings(openai_api_key=config.OPENAI_API_KEY)
-    question_embedding = embeddings_model.embed_query(question)
-    docs = db.similarity_search_by_vector(question_embedding, k=1)  # k=3からk=1に変更
+    docs = db.similarity_search(question, k=1)  # k=1に変更
     # 文書内容を短縮（最大1000文字）
     content = "\n".join([doc.page_content for doc in docs])
     if len(content) > 1000:
