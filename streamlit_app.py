@@ -9,7 +9,7 @@ from langgraph.prebuilt import ToolNode
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from langchain_chroma import Chroma
+from langchain_community.vectorstores import FAISS
 import config
 import glob
 
@@ -71,8 +71,8 @@ def initialize_database():
         if not isinstance(doc.page_content, str):
             doc.page_content = str(doc.page_content)
     
-    # Chromaデータベースを作成
-    db = Chroma.from_documents(documents=documents, embedding=embeddings_model)
+    # FAISSベクトルデータベースを作成
+    db = FAISS.from_documents(documents=documents, embedding=embeddings_model)
     
     return db
 
