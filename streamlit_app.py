@@ -9,7 +9,7 @@ from langgraph.prebuilt import ToolNode
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from langchain_community.vectorstores import DocArrayInMemorySearch
+from langchain_community.embeddings import OpenAIEmbeddings
 import config
 import glob
 
@@ -71,10 +71,8 @@ def initialize_database():
         if not isinstance(doc.page_content, str):
             doc.page_content = str(doc.page_content)
     
-    # DocArrayInMemorySearchベクトルデータベースを作成
-    db = DocArrayInMemorySearch.from_documents(documents=documents, embedding=embeddings_model)
-    
-    return db
+    # ドキュメントをメモリに保存
+    return documents
 
 # === モデルとツールの設定 ===
 @st.cache_resource
@@ -127,14 +125,28 @@ def initialize_tools():
     return [search]
 
 # === RAGとプロンプトテンプレート ===
-def rag_retrieve(question: str, db):
+def rag_retrieve(question: str, documents):
     """RAGで関連文書を取得"""
-    docs = db.similarity_search(question, k=1)  # k=1に変更
-    # 文書内容を短縮（最大1000文字）
-    content = "\n".join([doc.page_content for doc in docs])
-    if len(content) > 1000:
-        content = content[:1000] + "..."
-    return content
+    # キーワードベースの検索
+    relevant_docs = []
+    keywords = question.lower().split()
+    
+    for doc in documents:
+        doc_content = doc.page_content.lower()
+        score = sum(1 for keyword in keywords if keyword in doc_content)
+        if score > 0:
+            relevant_docs.append((doc, score))
+    
+    # スコアでソート
+    relevant_docs.sort(key=lambda x: x[1], reverse=True)
+    
+    if relevant_docs:
+        content = relevant_docs[0][0].page_content
+        if len(content) > 1000:
+            content = content[:1000] + "..."
+        return content
+    else:
+        return "キャンピングカーの修理に関する一般的な情報をお探しします。"
 
 template = """
 あなたはキャンピングカーの修理専門家です。以下の文書抜粋を参照して質問に答えてください。
@@ -275,12 +287,12 @@ def main():
         with st.chat_message("assistant", avatar="https://camper-repair.net/blog/wp-content/uploads/2025/05/dummy_staff_01-150x138-1.png"):
             with st.spinner("🔧 修理アドバイスを生成中..."):
                 try:
-                    # データベースとワークフローを取得
-                    db = initialize_database()
+                    # ドキュメントとワークフローを取得
+                    documents = initialize_database()
                     app_flow = build_workflow()
                     
                     # RAGで関連文書を取得
-                    document_snippet = rag_retrieve(prompt, db)
+                    document_snippet = rag_retrieve(prompt, documents)
                     
                     # プロンプトを構築
                     content = template.format(document_snippet=document_snippet, question=prompt)
@@ -356,12 +368,12 @@ def main():
         with st.chat_message("assistant", avatar="https://camper-repair.net/blog/wp-content/uploads/2025/05/dummy_staff_01-150x138-1.png"):
             with st.spinner("🔧 修理アドバイスを生成中..."):
                 try:
-                    # データベースとワークフローを取得
-                    db = initialize_database()
+                    # ドキュメントとワークフローを取得
+                    documents = initialize_database()
                     app_flow = build_workflow()
                     
                     # RAGで関連文書を取得
-                    document_snippet = rag_retrieve(prompt, db)
+                    document_snippet = rag_retrieve(prompt, documents)
                     
                     # プロンプトを構築
                     content = template.format(document_snippet=document_snippet, question=prompt)
