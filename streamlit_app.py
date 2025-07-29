@@ -313,32 +313,44 @@ def main():
     
     # サイドバー
     with st.sidebar:
-        st.header("📋 クイック質問")
+        # クイック質問の表示/非表示を制御
+        if 'show_quick_questions' not in st.session_state:
+            st.session_state.show_quick_questions = False
         
-        if st.button("🔋 バッテリー上がり", use_container_width=True):
-            prompt = "バッテリーが上がってエンジンが始動しない時の対処法を教えてください"
-            st.session_state.messages.append({"role": "user", "content": prompt})
+        # クイック質問ボタン
+        if st.button("📋 クイック質問", use_container_width=True):
+            st.session_state.show_quick_questions = not st.session_state.show_quick_questions
             st.rerun()
         
-        if st.button("🚰 水道ポンプ", use_container_width=True):
-            prompt = "水道ポンプから水が出ない時の修理方法は？"
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            st.rerun()
-        
-        if st.button("🔥 ガスコンロ", use_container_width=True):
-            prompt = "ガスコンロが点火しない時の対処法を教えてください"
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            st.rerun()
-        
-        if st.button("🧊 冷蔵庫", use_container_width=True):
-            prompt = "冷蔵庫が冷えない時の修理方法は？"
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            st.rerun()
-        
-        if st.button("🔧 定期点検", use_container_width=True):
-            prompt = "キャンピングカーの定期点検項目とスケジュールは？"
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            st.rerun()
+        # クイック質問が表示されている場合
+        if st.session_state.show_quick_questions:
+            st.markdown("---")
+            st.markdown("**よくある質問：**")
+            
+            if st.button("🔋 バッテリー上がり", use_container_width=True):
+                prompt = "バッテリーが上がってエンジンが始動しない時の対処法を教えてください"
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                st.rerun()
+            
+            if st.button("🚰 水道ポンプ", use_container_width=True):
+                prompt = "水道ポンプから水が出ない時の修理方法は？"
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                st.rerun()
+            
+            if st.button("🔥 ガスコンロ", use_container_width=True):
+                prompt = "ガスコンロが点火しない時の対処法を教えてください"
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                st.rerun()
+            
+            if st.button("🧊 冷蔵庫", use_container_width=True):
+                prompt = "冷蔵庫が冷えない時の修理方法は？"
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                st.rerun()
+            
+            if st.button("🔧 定期点検", use_container_width=True):
+                prompt = "キャンピングカーの定期点検項目とスケジュールは？"
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                st.rerun()
         
         st.divider()
         
