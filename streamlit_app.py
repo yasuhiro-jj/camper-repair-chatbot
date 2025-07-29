@@ -264,13 +264,6 @@ def main():
                     .mobile-title p {
                         font-size: 0.8rem !important;
                     }
-                    .mobile-quick-questions {
-                        margin-top: 0.5rem !important;
-                    }
-                    .mobile-quick-questions button {
-                        font-size: 0.7rem !important;
-                        padding: 0.4rem 0.8rem !important;
-                    }
                 }
     
     /* 右上のメニュー要素を非表示 */
@@ -299,6 +292,22 @@ def main():
         padding-top: 1rem;
     }
     
+    /* 右上のアイコン類を非表示 */
+    .stApp > div[data-testid="stDecoration"] {display: none;}
+    .stApp > div[data-testid="stStatusWidget"] {display: none;}
+    /* フォークボタンとGitHubボタンを非表示 */
+    .stApp > div[data-testid="stGitHubButton"] {display: none;}
+    .stApp > div[data-testid="stForkButton"] {display: none;}
+    /* 3点メニューを非表示 */
+    .stApp > div[data-testid="stMenuButton"] {display: none;}
+    /* ユーザーアバターを非表示 */
+    .stApp > div[data-testid="stUserAvatar"] {display: none;}
+    /* Streamlitブランディングを非表示 */
+    .stApp > div[data-testid="stStreamlitBranding"] {display: none;}
+    /* 右下のホスト情報を非表示 */
+    .stApp > div[data-testid="stBottomBlock"] {display: none;}
+    .stApp > div[data-testid="stBottomContainer"] {display: none;}
+    
     /* サイドバーを常に表示 */
     .stApp > div[data-testid="stSidebar"] {
         display: block !important;
@@ -315,35 +324,7 @@ def main():
                     <div class="mobile-title" style="text-align: center;">
                     <h1 style="font-size: 1.8rem; margin-bottom: 0.5rem;">🔧 キャンピングカー修理専門AIチャット</h1>
                     <p style="font-size: 0.9rem; color: #666; margin-top: 0;">経験豊富なAIがキャンピングカーの修理について詳しくお答えします</p>
-                    
-                    <!-- スマホ用クイック質問ボタン -->
-                    <div class="mobile-quick-questions" style="margin-top: 1rem;">
-                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;">
-                            <button onclick="askQuestion('バッテリーが上がってエンジンが始動しない時の対処法を教えてください')" style="background: #4CAF50; color: white; border: none; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">🔋 バッテリー</button>
-                            <button onclick="askQuestion('水道ポンプから水が出ない時の修理方法は？')" style="background: #2196F3; color: white; border: none; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">🚰 水道</button>
-                            <button onclick="askQuestion('ガスコンロが点火しない時の対処法を教えてください')" style="background: #FF9800; color: white; border: none; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">🔥 ガス</button>
-                            <button onclick="askQuestion('冷蔵庫が冷えない時の修理方法は？')" style="background: #9C27B0; color: white; border: none; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">🧊 冷蔵庫</button>
-                            <button onclick="askQuestion('キャンピングカーの定期点検項目とスケジュールは？')" style="background: #607D8B; color: white; border: none; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">🔧 点検</button>
-                        </div>
-                    </div>
                 </div>
-                
-                <script>
-                function askQuestion(question) {
-                    // Streamlitのセッション状態に質問を追加
-                    window.parent.postMessage({
-                        type: 'streamlit:setComponentValue',
-                        value: question
-                    }, '*');
-                    
-                    // チャット入力欄に質問を設定
-                    const chatInput = document.querySelector('input[data-testid="stChatInput"]');
-                    if (chatInput) {
-                        chatInput.value = question;
-                        chatInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                }
-                </script>
     """, unsafe_allow_html=True)
     
     # サイドバー
