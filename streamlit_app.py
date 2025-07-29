@@ -28,6 +28,7 @@ st.markdown("""
 .stApp > div[data-testid="stSidebar"] {
     display: block !important;
     visibility: visible !important;
+    position: relative !important;
 }
 
 /* スマホでのサイドバー表示を確保 */
@@ -36,7 +37,21 @@ st.markdown("""
         display: block !important;
         width: 100% !important;
         visibility: visible !important;
+        position: relative !important;
+        z-index: 1000 !important;
     }
+    
+    /* サイドバーの背景を確保 */
+    .stApp > div[data-testid="stSidebar"] > div {
+        background-color: #f0f2f6 !important;
+        padding: 1rem !important;
+    }
+}
+
+/* サイドバーの表示を強制 */
+section[data-testid="stSidebar"] {
+    display: block !important;
+    visibility: visible !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -296,13 +311,10 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # クイック質問をメインエリアに表示（スマホ対応）
-    st.markdown("### 📋 クイック質問")
-    
-    # ボタンを横並びで表示
-    col1, col2 = st.columns(2)
-    
-    with col1:
+    # サイドバー
+    with st.sidebar:
+        st.header("📋 クイック質問")
+        
         if st.button("🔋 バッテリー上がり", use_container_width=True):
             prompt = "バッテリーが上がってエンジンが始動しない時の対処法を教えてください"
             st.session_state.messages.append({"role": "user", "content": prompt})
@@ -317,8 +329,7 @@ def main():
             prompt = "ガスコンロが点火しない時の対処法を教えてください"
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.rerun()
-    
-    with col2:
+        
         if st.button("🧊 冷蔵庫", use_container_width=True):
             prompt = "冷蔵庫が冷えない時の修理方法は？"
             st.session_state.messages.append({"role": "user", "content": prompt})
@@ -329,12 +340,12 @@ def main():
             st.session_state.messages.append({"role": "user", "content": prompt})
             st.rerun()
         
-        if st.button("🆕 新しい会話", use_container_width=True):
+        st.divider()
+        
+        if st.button("🆕 新しい会話を開始", use_container_width=True):
             st.session_state.messages = []
             st.session_state.conversation_id = str(uuid.uuid4())
             st.rerun()
-    
-    st.divider()
     
     # メインエリア
     # チャット履歴の表示
