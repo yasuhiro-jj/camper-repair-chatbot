@@ -218,7 +218,7 @@ def build_workflow():
 
 # === メインアプリケーション ===
 def main():
-    # レスポンシブなタイトル（スマホ対応）とヘッダー非表示
+    # レスポンシブなタイトル（スマホ対応）
     st.markdown("""
     <style>
     @media (max-width: 768px) {
@@ -229,83 +229,6 @@ def main():
         .mobile-title p {
             font-size: 0.8rem !important;
         }
-    }
-    
-    /* 右上のメニューボタンを非表示 */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    
-    /* ハンバーガーメニューを非表示 */
-    .stDeployButton {display: none;}
-    
-    /* その他のヘッダー要素を非表示 */
-    .stApp > header {display: none;}
-    .stApp > footer {display: none;}
-    
-    /* 右下のStreamlitマークを非表示 */
-    .stApp > footer {display: none !important;}
-    footer {display: none !important;}
-    
-    /* 右下のデプロイボタンを非表示 */
-    .stDeployButton {display: none !important;}
-    
-    /* その他のUI要素を非表示 */
-    .stApp > div[data-testid="stDecoration"] {display: none;}
-    .stApp > div[data-testid="stStatusWidget"] {display: none;}
-    
-    /* 右上のFork、GitHub、3点メニューを非表示 */
-    .stApp > div[data-testid="stToolbar"] {display: none !important;}
-    .stApp > div[data-testid="stToolbarActions"] {display: none !important;}
-    
-    /* GitHub関連のボタンを非表示 */
-    .stApp > div[data-testid="stGitHubButton"] {display: none !important;}
-    .stApp > div[data-testid="stForkButton"] {display: none !important;}
-    
-    /* 3点メニューを非表示 */
-    .stApp > div[data-testid="stMenuButton"] {display: none !important;}
-    .stApp > div[data-testid="stMenu"] {display: none !important;}
-    
-    /* その他のヘッダー要素を非表示 */
-    .stApp > div[data-testid="stHeader"] {display: none !important;}
-    .stApp > div[data-testid="stHeaderActions"] {display: none !important;}
-    
-    /* 右下のユーザー名アイコンと「hosted with streamlit」を非表示 */
-    .stApp > div[data-testid="stUserInfo"] {display: none !important;}
-    .stApp > div[data-testid="stUserAvatar"] {display: none !important;}
-    
-    /* Streamlitのブランディング要素を非表示 */
-    .stApp > div[data-testid="stStreamlitBranding"] {display: none !important;}
-    .stApp > div[data-testid="stStreamlitLogo"] {display: none !important;}
-    
-    /* 「hosted with streamlit」テキストを非表示 */
-    .stApp > div[data-testid="stStreamlitText"] {display: none !important;}
-    .stApp > div[data-testid="stStreamlitLink"] {display: none !important;}
-    
-    /* その他の右下要素を非表示 */
-    .stApp > div[data-testid="stBottomBlock"] {display: none !important;}
-    .stApp > div[data-testid="stBottomContainer"] {display: none !important;}
-    
-    /* より強力なセレクターで右下要素を非表示 */
-    footer {display: none !important;}
-    .stApp footer {display: none !important;}
-    .stApp > footer {display: none !important;}
-    
-    /* ユーザー情報とブランディングを強制的に非表示 */
-    [data-testid="stUserInfo"] {display: none !important;}
-    [data-testid="stUserAvatar"] {display: none !important;}
-    [data-testid="stStreamlitBranding"] {display: none !important;}
-    [data-testid="stStreamlitLogo"] {display: none !important;}
-    [data-testid="stStreamlitText"] {display: none !important;}
-    [data-testid="stStreamlitLink"] {display: none !important;}
-    
-    /* 右下のすべての要素を非表示 */
-    .stApp > div:last-child {display: none !important;}
-    .stApp > div[style*="position: fixed"] {display: none !important;}
-    
-    /* メインコンテンツの上部マージンを調整 */
-    .main .block-container {
-        padding-top: 1rem;
     }
     </style>
     <div class="mobile-title" style="text-align: center;">
