@@ -1,6 +1,8 @@
 import streamlit as st
 import os
 import uuid
+import requests
+from bs4 import BeautifulSoup
 from typing import Literal
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_core.tools import tool
@@ -123,42 +125,58 @@ def initialize_model():
 
 @st.cache_resource
 def initialize_tools():
-    """ツールを初期化"""
-    @tool
-    def search(query: str):
-        """キャンピングカー修理に関する情報を検索します。"""
-        try:
-            from langchain_community.utilities import SerpAPIWrapper
-            
-            search_wrapper = SerpAPIWrapper(serpapi_api_key=config.SERP_API_KEY)
-            result = search_wrapper.run(query)
-            
-            # 検索結果を箇条書き形式で処理
-            if result:
-                links = [
-                    f"[検索] Google検索: {query} についての詳細情報",
-                    f"[動画] YouTube動画: {query} の修理手順動画",
-                    f"[購入] Amazon商品: {query} 関連の部品・工具",
-                    f"[情報] 専門サイト: キャンピングカー修理専門情報"
-                ]
-            else:
-                links = [
-                    f"[検索] Google検索: キャンピングカー {query} 修理方法",
-                    f"[動画] YouTube動画: キャンピングカー {query} 修理手順",
-                    f"[購入] Amazon商品: キャンピングカー修理部品",
-                    f"[情報] 専門サイト: キャンピングカー修理専門情報"
-                ]
-            
-            return links
-        except Exception as e:
-            return [
-                f"[検索] Google検索: キャンピングカー {query} 修理方法",
-                f"[動画] YouTube動画: キャンピングカー {query} 修理手順",
-                f"[購入] Amazon商品: キャンピングカー修理部品",
-                f"[情報] 専門サイト: キャンピングカー修理専門情報"
-            ]
-    
-    return [search]
+    """ツールを初期化（外部検索機能は無効化）"""
+    # 外部検索機能を無効化
+    return []
+
+# === ブログ記事検索機能 ===
+@st.cache_data(ttl=3600)  # 1時間キャッシュ
+def search_blog_articles(query: str):
+    """ブログ記事を検索して関連記事を取得"""
+    try:
+        # ブログサイトのURL
+        blog_url = "https://camper-repair.net/blog/"
+        
+        # サイトから記事一覧を取得
+        response = requests.get(blog_url, timeout=10)
+        response.raise_for_status()
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # 記事リンクを取得
+        articles = []
+        
+        # 最近の投稿セクションから記事を取得
+        recent_posts = soup.find_all('li')
+        
+        for post in recent_posts:
+            link = post.find('a')
+            if link and link.get('href'):
+                title = link.get_text(strip=True)
+                url = link.get('href')
+                
+                # タイトルに関連キーワードが含まれているかチェック
+                query_words = query.lower().split()
+                title_lower = title.lower()
+                
+                # 関連性スコアを計算
+                score = sum(1 for word in query_words if word in title_lower)
+                
+                if score > 0:
+                    articles.append({
+                        'title': title,
+                        'url': url,
+                        'score': score
+                    })
+        
+        # スコアでソート
+        articles.sort(key=lambda x: x['score'], reverse=True)
+        
+        return articles[:3]  # 上位3件を返す
+        
+    except Exception as e:
+        st.error(f"ブログ記事の取得中にエラーが発生しました: {str(e)}")
+        return []
 
 # === RAGとプロンプトテンプレート ===
 def rag_retrieve(question: str, documents):
@@ -198,10 +216,9 @@ template = """
 • 注意点
 • 必要な工具・部品
 
-【関連リンク】
-• Google検索: {question} 修理方法
-• YouTube動画: キャンピングカー {question} 修理手順
-• Amazon商品: キャンピングカー修理部品
+【関連ブログ記事】
+ユーザーの質問に関連するブログ記事があれば、親しみやすい会話調で紹介してください。
+例：「この件について、当社のブログで詳しく解説している記事がありますよ！ぜひ参考にしてみてください。」
 
 【岡山キャンピングカー修理サポートセンター】
 上記の対処法を試していただき、さらに詳しいアドバイスや実際の修理作業が必要な場合は、お気軽に岡山キャンピングカー修理サポートセンターまでご相談ください！
@@ -431,27 +448,14 @@ def main():
                     # 回答を表示
                     st.markdown(response)
                     
-                    # 関連リンクを表示
-                    st.markdown("---")
-                    st.markdown("**🔗 関連リンク**")
-                    
-                    # Google検索リンク
-                    google_query = f"キャンピングカー {prompt} 修理方法"
-                    google_url = f"https://www.google.com/search?q={google_query.replace(' ', '+')}"
-                    st.markdown(f"🔍 **[Google検索: {prompt}の修理方法]({google_url})**")
-                    st.markdown(f"*詳細な修理手順、専門業者情報、トラブルシューティング方法を検索*")
-                    
-                    # YouTube検索リンク
-                    youtube_query = f"キャンピングカー {prompt} 修理"
-                    youtube_url = f"https://www.youtube.com/results?search_query={youtube_query.replace(' ', '+')}"
-                    st.markdown(f"📺 **[YouTube動画: {prompt}の修理手順]({youtube_url})**")
-                    st.markdown(f"*実際の修理作業の動画、工具の使い方、部品交換の手順を視聴*")
-                    
-                    # Amazon検索リンク
-                    amazon_query = f"キャンピングカー 修理 部品"
-                    amazon_url = f"https://www.amazon.co.jp/s?k={amazon_query.replace(' ', '+')}"
-                    st.markdown(f"🛒 **[Amazon商品: キャンピングカー修理部品]({amazon_url})**")
-                    st.markdown(f"*必要な工具、交換部品、消耗品の購入*")
+                    # ブログ記事の検索と表示
+                    blog_articles = search_blog_articles(prompt)
+                    if blog_articles:
+                        st.markdown("---")
+                        st.markdown("**📝 関連ブログ記事**")
+                        for article in blog_articles:
+                            st.markdown(f"• [{article['title']}]({article['url']})")
+                        st.markdown("*より詳しい情報は上記の記事をご覧ください*")
                     
                     # 岡山サポートセンターリンク
                     st.markdown("---")
@@ -512,27 +516,14 @@ def main():
                     # 回答を表示
                     st.markdown(response)
                     
-                    # 関連リンクを表示
-                    st.markdown("---")
-                    st.markdown("**🔗 関連リンク**")
-                    
-                    # Google検索リンク
-                    google_query = f"キャンピングカー {prompt} 修理方法"
-                    google_url = f"https://www.google.com/search?q={google_query.replace(' ', '+')}"
-                    st.markdown(f"🔍 **[Google検索: {prompt}の修理方法]({google_url})**")
-                    st.markdown(f"*詳細な修理手順、専門業者情報、トラブルシューティング方法を検索*")
-                    
-                    # YouTube検索リンク
-                    youtube_query = f"キャンピングカー {prompt} 修理"
-                    youtube_url = f"https://www.youtube.com/results?search_query={youtube_query.replace(' ', '+')}"
-                    st.markdown(f"📺 **[YouTube動画: {prompt}の修理手順]({youtube_url})**")
-                    st.markdown(f"*実際の修理作業の動画、工具の使い方、部品交換の手順を視聴*")
-                    
-                    # Amazon検索リンク
-                    amazon_query = f"キャンピングカー 修理 部品"
-                    amazon_url = f"https://www.amazon.co.jp/s?k={amazon_query.replace(' ', '+')}"
-                    st.markdown(f"🛒 **[Amazon商品: キャンピングカー修理部品]({amazon_url})**")
-                    st.markdown(f"*必要な工具、交換部品、消耗品の購入*")
+                    # ブログ記事の検索と表示
+                    blog_articles = search_blog_articles(prompt)
+                    if blog_articles:
+                        st.markdown("---")
+                        st.markdown("**📝 関連ブログ記事**")
+                        for article in blog_articles:
+                            st.markdown(f"• [{article['title']}]({article['url']})")
+                        st.markdown("*より詳しい情報は上記の記事をご覧ください*")
                     
                     # 岡山サポートセンターリンク
                     st.markdown("---")

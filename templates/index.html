@@ -19,12 +19,29 @@
       }
 
       .container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
         padding: 20px;
         height: 100vh;
         display: flex;
+        gap: 20px;
+      }
+
+      .main-content {
+        flex: 1;
+        display: flex;
         flex-direction: column;
+      }
+
+      .sidebar {
+        width: 300px;
+        background: rgba(255,255,255,0.95);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        height: fit-content;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
       }
 
       h1 {
@@ -184,8 +201,8 @@
 
       .quick-questions {
         display: flex;
+        flex-direction: column;
         gap: 10px;
-        flex-wrap: wrap;
         margin-top: 15px;
       }
 
@@ -193,11 +210,13 @@
         background: #f39c12;
         color: white;
         border: none;
-        padding: 8px 15px;
-        border-radius: 20px;
+        padding: 12px 15px;
+        border-radius: 10px;
         cursor: pointer;
         font-size: 14px;
         transition: all 0.3s ease;
+        text-align: left;
+        width: 100%;
       }
 
       .quick-btn:hover {
@@ -294,46 +313,56 @@
   </head>
   <body>
     <div class="container">
-      <h1>キャンピングカー修理専門AIチャット</h1>
-      <p class="subtitle">経験豊富なAIがキャンピングカーの修理について詳しくお答えします</p>
+      <!-- メインコンテンツ -->
+      <div class="main-content">
+        <h1>キャンピングカー修理専門AIチャット</h1>
+        <p class="subtitle">経験豊富なキャンピングカー修理アドバイザーAIが修理について詳しくお答えします</p>
 
-      <!-- チャットヘッダー -->
-      <div class="chat-header">
-        <button onclick="startNewConversation()" class="new-chat-btn">🆕 新しい会話を開始</button>
-        <div class="chat-info">
-          <span>💬 会話型チャットボット</span>
+        <!-- チャットヘッダー -->
+        <div class="chat-header">
+          <button onclick="startNewConversation()" class="new-chat-btn">🆕 新しい会話を開始</button>
+          <div class="chat-info">
+            <span>💬 会話型チャットボット</span>
+          </div>
+        </div>
+
+        <!-- チャットエリア -->
+        <div class="chat-container">
+          <div id="chatMessages" class="chat-messages">
+            <!-- メッセージがここに表示されます -->
+          </div>
+          
+          <!-- 入力エリア -->
+          <div class="chat-input-area">
+            <form id="questionForm" class="chat-form">
+              <div class="input-group">
+                <input
+                  type="text"
+                  id="question"
+                  name="question"
+                  placeholder="キャンピングカーの修理について質問してください..."
+                  required
+                  class="chat-input"
+                />
+                <button type="submit" class="send-btn">📤</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
 
-      <!-- チャットエリア -->
-      <div class="chat-container">
-        <div id="chatMessages" class="chat-messages">
-          <!-- メッセージがここに表示されます -->
-        </div>
-        
-        <!-- 入力エリア -->
-        <div class="chat-input-area">
-          <form id="questionForm" class="chat-form">
-            <div class="input-group">
-              <input
-                type="text"
-                id="question"
-                name="question"
-                placeholder="キャンピングカーの修理について質問してください..."
-                required
-                class="chat-input"
-              />
-              <button type="submit" class="send-btn">📤</button>
-            </div>
-          </form>
-          
-          <!-- クイック質問ボタン -->
-          <div class="quick-questions">
-            <button onclick="setQuestion('エンジンが始動しない場合の対処法を教えてください')" class="quick-btn">エンジンが始動しない</button>
-            <button onclick="setQuestion('給排水システムの故障時の修理方法は？')" class="quick-btn">給排水システム</button>
-            <button onclick="setQuestion('電気系統のトラブルシューティング方法')" class="quick-btn">電気系統</button>
-            <button onclick="setQuestion('定期メンテナンスのスケジュールは？')" class="quick-btn">メンテナンス</button>
-          </div>
+      <!-- サイドバー -->
+      <div class="sidebar">
+        <h3 style="margin-bottom: 15px; color: #2c3e50; text-align: center;">🔧 クイック質問</h3>
+        <div class="quick-questions">
+          <button onclick="setQuestion('エンジンが始動しない場合の対処法を教えてください')" class="quick-btn">🚗 エンジンが始動しない</button>
+          <button onclick="setQuestion('給排水システムの故障時の修理方法は？')" class="quick-btn">🚰 給排水システム</button>
+          <button onclick="setQuestion('電気系統のトラブルシューティング方法')" class="quick-btn">⚡ 電気系統</button>
+          <button onclick="setQuestion('定期メンテナンスのスケジュールは？')" class="quick-btn">🔧 メンテナンス</button>
+          <button onclick="setQuestion('バッテリーが上がってエンジンが始動しない時の対処法を教えてください')" class="quick-btn">🔋 バッテリー上がり</button>
+          <button onclick="setQuestion('水道ポンプから水が出ない時の修理方法は？')" class="quick-btn">💧 水道ポンプ</button>
+          <button onclick="setQuestion('ガスコンロが点火しない時の対処法を教えてください')" class="quick-btn">🔥 ガスコンロ</button>
+          <button onclick="setQuestion('冷蔵庫が冷えない時の修理方法は？')" class="quick-btn">🧊 冷蔵庫</button>
         </div>
       </div>
     </div>
