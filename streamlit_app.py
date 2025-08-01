@@ -187,6 +187,11 @@ def search_blog_articles(query: str):
                     if any(word in title_lower for word in ['冷蔵庫', 'refrigerator', '冷蔵']):
                         score += 3
                 
+                # 電力・インバーター関連の質問の場合
+                if any(word in query.lower() for word in ['電力', 'インバーター', '電源']):
+                    if any(word in title_lower for word in ['電力', 'インバーター', '電源']):
+                        score += 3
+                
                 if score > 0:
                     articles.append({
                         'title': title,
@@ -194,26 +199,47 @@ def search_blog_articles(query: str):
                         'score': score
                     })
         
+        # 記事が見つからない場合、一般的な記事も追加
+        if len(articles) < 3:
+            general_articles = [
+                {
+                    'title': 'キャンピングカーに最適なエアコンとは？家庭用・12V・ポータブルの違いを解説',
+                    'url': 'https://camper-repair.net/blog/',
+                    'score': 1
+                },
+                {
+                    'title': 'キャンピングカーのリチウムイオンバッテリー事故を防ぐ火災リスクと安全対策を徹底解説',
+                    'url': 'https://camper-repair.net/blog/',
+                    'score': 1
+                },
+                {
+                    'title': 'キャンピングカーの電力問題解決！～これで最適なインバーター選びを徹底解説～',
+                    'url': 'https://camper-repair.net/blog/',
+                    'score': 1
+                }
+            ]
+            articles.extend(general_articles)
+        
         # スコアでソート
         articles.sort(key=lambda x: x['score'], reverse=True)
         
         # デバッグ用：記事が見つからない場合のフォールバック
         if not articles:
-            # デフォルトの記事を返す
+            # デフォルトの記事を返す（実際のブログ記事URL）
             default_articles = [
                 {
-                    'title': 'キャンピングカーのエアコンメンテナンスガイド',
-                    'url': 'https://camper-repair.net/blog/aircon-maintenance/',
+                    'title': 'キャンピングカーに最適なエアコンとは？家庭用・12V・ポータブルの違いを解説',
+                    'url': 'https://camper-repair.net/blog/',
                     'score': 1
                 },
                 {
-                    'title': 'キャンピングカーのバッテリー管理完全ガイド',
-                    'url': 'https://camper-repair.net/blog/battery-guide/',
+                    'title': 'キャンピングカーのリチウムイオンバッテリー事故を防ぐ火災リスクと安全対策を徹底解説',
+                    'url': 'https://camper-repair.net/blog/',
                     'score': 1
                 },
                 {
-                    'title': 'キャンピングカーの冷蔵庫トラブルシューティング',
-                    'url': 'https://camper-repair.net/blog/refrigerator-troubleshooting/',
+                    'title': 'キャンピングカーの電力問題解決！～これで最適なインバーター選びを徹底解説～',
+                    'url': 'https://camper-repair.net/blog/',
                     'score': 1
                 }
             ]
@@ -226,18 +252,18 @@ def search_blog_articles(query: str):
         # エラー時もデフォルト記事を返す
         return [
             {
-                'title': 'キャンピングカーのエアコンメンテナンスガイド',
-                'url': 'https://camper-repair.net/blog/aircon-maintenance/',
+                'title': 'キャンピングカーに最適なエアコンとは？家庭用・12V・ポータブルの違いを解説',
+                'url': 'https://camper-repair.net/blog/',
                 'score': 1
             },
             {
-                'title': 'キャンピングカーのバッテリー管理完全ガイド',
-                'url': 'https://camper-repair.net/blog/battery-guide/',
+                'title': 'キャンピングカーのリチウムイオンバッテリー事故を防ぐ火災リスクと安全対策を徹底解説',
+                'url': 'https://camper-repair.net/blog/',
                 'score': 1
             },
             {
-                'title': 'キャンピングカーの冷蔵庫トラブルシューティング',
-                'url': 'https://camper-repair.net/blog/refrigerator-troubleshooting/',
+                'title': 'キャンピングカーの電力問題解決！～これで最適なインバーター選びを徹底解説～',
+                'url': 'https://camper-repair.net/blog/',
                 'score': 1
             }
         ]
@@ -521,9 +547,9 @@ def main():
                             st.markdown(f"• [{article['title']}]({article['url']})")
                         st.markdown("*より詳しい情報は上記の記事をご覧ください*")
                     else:
-                        st.markdown("• [キャンピングカーのエアコンメンテナンスガイド](https://camper-repair.net/blog/aircon-maintenance/)")
-                        st.markdown("• [キャンピングカーのバッテリー管理完全ガイド](https://camper-repair.net/blog/battery-guide/)")
-                        st.markdown("• [キャンピングカーの冷蔵庫トラブルシューティング](https://camper-repair.net/blog/refrigerator-troubleshooting/)")
+                        st.markdown("• [キャンピングカーに最適なエアコンとは？家庭用・12V・ポータブルの違いを解説](https://camper-repair.net/blog/)")
+                        st.markdown("• [キャンピングカーのリチウムイオンバッテリー事故を防ぐ火災リスクと安全対策を徹底解説](https://camper-repair.net/blog/)")
+                        st.markdown("• [キャンピングカーの電力問題解決！～これで最適なインバーター選びを徹底解説～](https://camper-repair.net/blog/)")
                         st.markdown("*より詳しい情報は上記の記事をご覧ください*")
                     
                     # 岡山サポートセンターリンク
@@ -594,9 +620,9 @@ def main():
                             st.markdown(f"• [{article['title']}]({article['url']})")
                         st.markdown("*より詳しい情報は上記の記事をご覧ください*")
                     else:
-                        st.markdown("• [キャンピングカーのエアコンメンテナンスガイド](https://camper-repair.net/blog/aircon-maintenance/)")
-                        st.markdown("• [キャンピングカーのバッテリー管理完全ガイド](https://camper-repair.net/blog/battery-guide/)")
-                        st.markdown("• [キャンピングカーの冷蔵庫トラブルシューティング](https://camper-repair.net/blog/refrigerator-troubleshooting/)")
+                        st.markdown("• [キャンピングカーに最適なエアコンとは？家庭用・12V・ポータブルの違いを解説](https://camper-repair.net/blog/)")
+                        st.markdown("• [キャンピングカーのリチウムイオンバッテリー事故を防ぐ火災リスクと安全対策を徹底解説](https://camper-repair.net/blog/)")
+                        st.markdown("• [キャンピングカーの電力問題解決！～これで最適なインバーター選びを徹底解説～](https://camper-repair.net/blog/)")
                         st.markdown("*より詳しい情報は上記の記事をご覧ください*")
                     
                     # 岡山サポートセンターリンク
