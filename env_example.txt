@@ -1,0 +1,13 @@
+# 環境変数設定例
+# このファイルをコピーして .env ファイルを作成し、実際のAPIキーを設定してください
+
+# OpenAI API設定
+OPENAI_API_KEY=your_actual_api_key_here
+
+# SerpAPI設定
+SERP_API_KEY=your_serp_api_key_here
+
+# 使用方法：
+# 1. このファイルを .env にコピー
+# 2. your_actual_api_key_here を実際のAPIキーに置き換え
+# 3. .env ファイルをGitにコミットしない（.gitignoreに追加） 
