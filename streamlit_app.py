@@ -115,7 +115,6 @@ def run_diagnostic_flow(diagnostic_data, current_node_id=None):
     # 診断開始
     if current_node_id is None:
         # カテゴリ選択
-        st.markdown("### 🔧 症状診断システム")
         st.markdown("どのカテゴリの問題について診断しますか？")
         
         # 利用可能なカテゴリを表示
@@ -1151,7 +1150,6 @@ def main():
         """, unsafe_allow_html=True)
         
         # 症状診断機能
-        st.markdown("### 🔧 症状診断システム")
         st.markdown("**下記のカテゴリから症状を選択してください：**")
         
         # 診断データを読み込み
