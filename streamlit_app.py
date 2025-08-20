@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import uuid
 import re
+import json
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
@@ -17,16 +18,187 @@ except ModuleNotFoundError as e:
         import sys
         import platform
         if platform.system() == "Windows":
-            # Windows環境での代替インポート
+        # Windows環境での代替インポート
             from langchain_community.document_loaders.pdf import PyPDFLoader
             from langchain_community.document_loaders.text import TextLoader
-        else:
-            raise e
     else:
         raise e
 
 import glob
 import config
+
+# === モック診断機能 ===
+def load_mock_diagnostic_data():
+    """外部JSONファイルからモック診断データを読み込み"""
+    try:
+        # ファイルパス（プロジェクトルート直下）
+        nodes_file = "mock_diagnostic_nodes.json"
+        start_nodes_file = "mock_start_nodes.json"
+
+        # ファイルが存在しない場合は作成
+        if not os.path.exists(nodes_file):
+            create_default_diagnostic_files()
+
+        # JSONファイルを読み込み
+        with open(nodes_file, 'r', encoding='utf-8') as f:
+            diagnostic_nodes_array = json.load(f)
+
+        with open(start_nodes_file, 'r', encoding='utf-8') as f:
+            start_nodes = json.load(f)
+
+        # 配列形式を辞書形式に変換
+        diagnostic_nodes = {}
+        for category_obj in diagnostic_nodes_array:
+            for node_id, node_data in category_obj.items():
+                diagnostic_nodes[node_id] = node_data
+
+        st.success("✅ **モック診断機能を起動しました**")
+        st.info("外部データファイルから診断データを読み込みました。")
+        
+        return {
+            "diagnostic_nodes": diagnostic_nodes,
+            "start_nodes": start_nodes
+        }
+        
+    except Exception as e:
+        st.error(f"❌ モック診断データの読み込みに失敗しました: {e}")
+        return None
+
+def create_default_diagnostic_files():
+    """デフォルトの診断ファイルを作成"""
+    # デフォルトの診断ノードデータ（配列形式）
+    default_nodes = [
+        {
+            "start_battery": {
+                "question": "バッテリーに関する問題ですか？",
+                "category": "バッテリー",
+                "is_start": True,
+                "is_end": False,
+                "next_nodes": ["battery_charge", "battery_other"],
+                "result": ""
+            },
+            "battery_dead": {
+                "question": "",
+                "category": "バッテリー",
+                "is_start": False,
+                "is_end": True,
+                "next_nodes": [],
+                "result": "🔋 **バッテリー完全放電**\n\n**対処法：**\n1. ブースターケーブルでの応急処置\n2. バッテリーチャージャーでの充電\n3. バッテリー交換（推奨）"
+            }
+        }
+    ]
+
+    default_start_nodes = {
+        "バッテリー": "start_battery",
+        "水道": "start_water"
+    }
+
+    # ファイルに保存（プロジェクトルート直下）
+    with open("mock_diagnostic_nodes.json", 'w', encoding='utf-8') as f:
+        json.dump(default_nodes, f, ensure_ascii=False, indent=2)
+
+    with open("mock_start_nodes.json", 'w', encoding='utf-8') as f:
+        json.dump(default_start_nodes, f, ensure_ascii=False, indent=2)
+
+def run_diagnostic_flow(diagnostic_data, current_node_id=None):
+    """診断フローを実行"""
+    if not diagnostic_data:
+        st.error("診断データが読み込めませんでした。")
+        return
+
+    diagnostic_nodes = diagnostic_data["diagnostic_nodes"]
+    start_nodes = diagnostic_data["start_nodes"]
+
+    # セッション状態の初期化
+    if "diagnostic_current_node" not in st.session_state:
+        st.session_state.diagnostic_current_node = None
+    if "diagnostic_history" not in st.session_state:
+        st.session_state.diagnostic_history = []
+
+    # 診断開始
+    if current_node_id is None:
+        # カテゴリ選択
+        st.markdown("### 🔧 症状診断システム")
+        st.markdown("どのカテゴリの問題について診断しますか？")
+        
+        # 利用可能なカテゴリを表示
+        categories = list(start_nodes.keys())
+        
+        # カテゴリを2列で表示
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**📋 利用可能な診断カテゴリ：**")
+            for i, category in enumerate(categories[:len(categories)//2]):
+                st.markdown(f"• {category}")
+        
+        with col2:
+            st.markdown("&nbsp;")  # 空行
+            for i, category in enumerate(categories[len(categories)//2:]):
+                st.markdown(f"• {category}")
+        
+        st.markdown("---")
+        
+        selected_category = st.selectbox("**🔍 診断したいカテゴリを選択してください**", categories, 
+                                       help="上記のカテゴリから症状に合うものを選択してください")
+        
+        if st.button("🚀 診断開始", use_container_width=True, type="primary"):
+            start_node_id = start_nodes[selected_category]
+            st.session_state.diagnostic_current_node = start_node_id
+            st.session_state.diagnostic_history = [start_node_id]
+            st.rerun()
+        
+        return
+
+    # 現在のノードを取得
+    current_node = diagnostic_nodes.get(current_node_id)
+    if not current_node:
+        st.error("診断ノードが見つかりませんでした。")
+        return
+
+    # 診断結果の表示
+    if current_node["is_end"]:
+        st.markdown("### 📋 診断結果")
+        st.markdown(current_node["result"])
+        
+        if st.button("🔄 新しい診断を開始"):
+            st.session_state.diagnostic_current_node = None
+            st.session_state.diagnostic_history = []
+            st.rerun()
+        
+        return
+
+    # 質問の表示
+    st.markdown("### 🔍 症状診断")
+    st.markdown(f"**{current_node['question']}**")
+    
+    # 回答ボタン
+    if current_node["next_nodes"]:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("はい", use_container_width=True):
+                next_node_id = current_node["next_nodes"][0]
+                st.session_state.diagnostic_current_node = next_node_id
+                st.session_state.diagnostic_history.append(next_node_id)
+                st.rerun()
+        
+        with col2:
+            if st.button("いいえ", use_container_width=True):
+                next_node_id = current_node["next_nodes"][1] if len(current_node["next_nodes"]) > 1 else current_node["next_nodes"][0]
+                st.session_state.diagnostic_current_node = next_node_id
+                st.session_state.diagnostic_history.append(next_node_id)
+                st.rerun()
+
+    # 診断履歴の表示
+    if st.session_state.diagnostic_history:
+        st.markdown("---")
+        st.markdown("**📝 診断履歴**")
+        for i, node_id in enumerate(st.session_state.diagnostic_history):
+            node = diagnostic_nodes.get(node_id, {})
+            question = node.get("question", "")
+            if question:
+                st.markdown(f"{i+1}. {question}")
 
 # === ブログURL抽出関数 ===
 def extract_blog_urls(documents, question=""):
@@ -431,21 +603,39 @@ def initialize_database():
 @st.cache_resource
 def initialize_model():
     """モデルを初期化"""
-    # APIキーをconfigファイルから取得
-    api_key = config.OPENAI_API_KEY
+    # 環境変数から直接APIキーを取得
+    api_key = os.getenv("OPENAI_API_KEY")
     
-    # APIキーが設定されていない場合の処理
+    # デバッグ用：環境変数の確認
     if not api_key:
         st.error("⚠️ OpenAI APIキーが設定されていません。")
-        st.info("config.pyファイルにAPIキーを設定してください。")
+        st.info("Streamlit CloudのSecretsで環境変数を設定してください。")
+        
+        # config.pyからの取得も試行
+        config_key = config.OPENAI_API_KEY
+        if config_key:
+            st.success("✅ config.pyからAPIキーを取得しました")
+            api_key = config_key
+        else:
+            st.error("❌ 環境変数OPENAI_API_KEYが設定されていません")
+            return None
+    
+    # APIキーの形式確認
+    if api_key and not api_key.startswith("sk-"):
+        st.error("❌ APIキーの形式が正しくありません。'sk-'で始まる必要があります。")
         return None
     
-    return ChatOpenAI(
-        api_key=api_key,
-        model="gpt-4o-mini",
-        temperature=0.7,
-        max_tokens=500  # トークン数を制限
-    )
+    try:
+        return ChatOpenAI(
+            api_key=api_key,
+            model="gpt-4o-mini",
+            temperature=0.7,
+            max_tokens=500  # トークン数を制限
+        )
+    except Exception as e:
+        st.error(f"❌ モデルの初期化に失敗しました: {str(e)}")
+        st.info("APIキーが正しく設定されているか確認してください。")
+        return None
 
 
 
@@ -542,6 +732,12 @@ def generate_ai_response(prompt: str):
         # ドキュメントとモデルを取得
         documents = initialize_database()
         model = build_workflow()
+        
+        # モデルがNoneの場合の処理
+        if model is None:
+            st.error("❌ モデルの初期化に失敗しました。APIキーを確認してください。")
+            st.info("デバッグ情報を展開して、環境変数の設定状況を確認してください。")
+            return
         
         # RAGで関連文書を取得
         document_snippet = rag_retrieve(prompt, documents)
@@ -692,9 +888,38 @@ def generate_ai_response(prompt: str):
         
     except Exception as e:
         st.error(f"エラーが発生しました: {str(e)}")
+        st.info("詳細なエラー情報を確認するには、デバッグ情報を展開してください。")
+        
+        # エラーの詳細情報を表示
+        with st.expander("詳細エラー情報", expanded=False):
+            st.code(str(e))
+            st.info("このエラー情報を開発者に共有してください。")
 
 # === メインアプリケーション ===
 def main():
+    # デバッグ情報を表示（一時的）
+    with st.expander("🔧 デバッグ情報", expanded=False):
+        st.markdown("### 環境変数確認")
+        openai_key = os.getenv("OPENAI_API_KEY")
+        serp_key = os.getenv("SERP_API_KEY")
+        
+        if openai_key:
+            st.success(f"✅ OPENAI_API_KEY: 設定済み ({openai_key[:10]}...)")
+        else:
+            st.error("❌ OPENAI_API_KEY: 未設定")
+            
+        if serp_key:
+            st.success(f"✅ SERP_API_KEY: 設定済み ({serp_key[:10]}...)")
+        else:
+            st.error("❌ SERP_API_KEY: 未設定")
+        
+        # config.pyからの取得値も確認
+        st.markdown("### config.pyからの取得値")
+        if config.OPENAI_API_KEY:
+            st.success(f"✅ config.OPENAI_API_KEY: 取得済み ({config.OPENAI_API_KEY[:10]}...)")
+        else:
+            st.error("❌ config.OPENAI_API_KEY: 未取得")
+        
     # レスポンシブなタイトル（スマホ対応）とヘッダー非表示
     st.markdown("""
     <style>
@@ -729,21 +954,24 @@ def main():
     /* ヘッダーアクションを非表示 */
     .stApp > div[data-testid="stHeaderActions"] {display: none;}
     
-    /* メインコンテンツの上部マージンを調整 */
+    /* サイドバーを完全に非表示 */
+    .stApp > div[data-testid="stSidebar"] {
+        display: none !important;
+    }
+    
+    /* メインコンテンツの幅を最大化 */
     .main .block-container {
         padding-top: 1rem;
+        max-width: 100% !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
     }
     
-    /* サイドバーを常に表示 */
-    .stApp > div[data-testid="stSidebar"] {
-        display: block !important;
-    }
-    
-    /* スマホでのサイドバー表示を確保 */
+    /* スマホでのレイアウト調整 */
     @media (max-width: 768px) {
-        .stApp > div[data-testid="stSidebar"] {
-            display: block !important;
-            width: 100% !important;
+        .main .block-container {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
         }
     }
     </style>
@@ -753,76 +981,225 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # クイック質問をメインエリアに表示（スマホ対応）
-    st.markdown("### 📋 クイック質問")
+    # タブを作成（より分かりやすいデザイン）
+    st.markdown("""
+    <style>
+    /* タブのスタイルをカスタマイズ */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: #f0f2f6;
+        border-radius: 10px;
+        padding: 8px;
+    }
     
-    # ボタンを横並びで表示
-    col1, col2 = st.columns(2)
+    .stTabs [data-baseweb="tab"] {
+        background-color: white;
+        border-radius: 8px;
+        color: #666;
+        font-weight: 500;
+        padding: 12px 24px;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
     
-    with col1:
-        if st.button("🔋 バッテリー上がり", use_container_width=True):
-            prompt = "バッテリーが上がってエンジンが始動しない時の対処法を教えてください"
+    .stTabs [aria-selected="true"] {
+        background-color: #1f77b4;
+        color: white;
+        border-color: #1f77b4;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stTabs [aria-selected="false"]:hover {
+        background-color: #e8f4fd;
+        border-color: #1f77b4;
+        color: #1f77b4;
+    }
+    
+    /* タブ説明のスタイル */
+    .tab-description {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px;
+        border-radius: 10px;
+        margin: 16px 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .tab-description h3 {
+        margin: 0 0 8px 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .tab-description p {
+        margin: 0;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    /* 機能説明カードのスタイル */
+    .feature-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 12px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .feature-card h4 {
+        color: #1f77b4;
+        margin: 0 0 8px 0;
+        font-size: 1rem;
+    }
+    
+    .feature-card ul {
+        margin: 8px 0;
+        padding-left: 20px;
+    }
+    
+    .feature-card li {
+        margin: 4px 0;
+        font-size: 0.9rem;
+        color: #555;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    tab1, tab2 = st.tabs(["💬 AIチャット相談", "🔧 対話式症状診断"])
+    
+    with tab1:
+        # AIチャットの説明
+        st.markdown("""
+        <div class="tab-description">
+            <h3>💬 AIチャット相談</h3>
+            <p>経験豊富なAIがキャンピングカーの修理について詳しくお答えします。自由に質問してください。</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 機能説明カード
+        st.markdown("""
+        <div class="feature-card">
+            <h4>🎯 この機能でできること</h4>
+            <ul>
+                <li>🔧 修理方法の詳細な説明</li>
+                <li>🛠️ 工具や部品の選び方</li>
+                <li>⚠️ 安全な作業手順の案内</li>
+                <li>📋 定期メンテナンスのアドバイス</li>
+                <li>💡 トラブルシューティングのヒント</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # クイック質問をメインエリアに表示（スマホ対応）
+        st.markdown("### 📋 よくある質問（クリックで質問）")
+        
+        # ボタンを横並びで表示
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🔋 バッテリー上がり", use_container_width=True):
+                prompt = "バッテリーが上がってエンジンが始動しない時の対処法を教えてください"
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                st.rerun()
+        
+            if st.button("🚰 水道ポンプ", use_container_width=True):
+                prompt = "水道ポンプから水が出ない時の修理方法は？"
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                st.rerun()
+        
+            if st.button("🔥 ガスコンロ", use_container_width=True):
+                prompt = "ガスコンロが点火しない時の対処法を教えてください"
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                st.rerun()
+    
+        with col2:
+            if st.button("🧊 冷蔵庫", use_container_width=True):
+                prompt = "冷蔵庫が冷えない時の修理方法は？"
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                st.rerun()
+        
+            if st.button("🔧 定期点検", use_container_width=True):
+                prompt = "キャンピングカーの定期点検項目とスケジュールは？"
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                st.rerun()
+        
+            if st.button("🆕 新しい会話", use_container_width=True):
+                st.session_state.messages = []
+                st.session_state.conversation_id = str(uuid.uuid4())
+                st.rerun()
+        
+        st.divider()
+        
+        # クイック質問からの自動回答処理
+        if len(st.session_state.messages) > 0 and st.session_state.messages[-1]["role"] == "user":
+            # 最新のメッセージがユーザーからの場合、AI回答を生成
+            prompt = st.session_state.messages[-1]["content"]
+            st.session_state.current_question = prompt  # 現在の質問を保存
+        
+            # AIの回答を生成
+            with st.chat_message("assistant", avatar="https://camper-repair.net/blog/wp-content/uploads/2025/05/dummy_staff_01-150x138-1.png"):
+                with st.spinner("🔧 修理アドバイスを生成中..."):
+                    generate_ai_response(prompt)
+    
+        # メインエリア
+        # チャット履歴の表示
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+        
+        # ユーザー入力（常に最後に表示）
+        if prompt := st.chat_input("キャンピングカーの修理について質問してください..."):
+            # ユーザーメッセージを追加
             st.session_state.messages.append({"role": "user", "content": prompt})
-            st.rerun()
+            st.session_state.current_question = prompt  # 現在の質問を保存
         
-        if st.button("🚰 水道ポンプ", use_container_width=True):
-            prompt = "水道ポンプから水が出ない時の修理方法は？"
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            st.rerun()
+            with st.chat_message("user"):
+                st.markdown(prompt)
         
-        if st.button("🔥 ガスコンロ", use_container_width=True):
-            prompt = "ガスコンロが点火しない時の対処法を教えてください"
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            st.rerun()
+            # AIの回答を生成
+            with st.chat_message("assistant", avatar="https://camper-repair.net/blog/wp-content/uploads/2025/05/dummy_staff_01-150x138-1.png"):
+                with st.spinner("🔧 修理アドバイスを生成中..."):
+                    generate_ai_response(prompt)
     
-    with col2:
-        if st.button("🧊 冷蔵庫", use_container_width=True):
-            prompt = "冷蔵庫が冷えない時の修理方法は？"
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            st.rerun()
+    with tab2:
+        # 症状診断の説明
+        st.markdown("""
+        <div class="tab-description">
+            <h3>🔧 対話式症状診断</h3>
+            <p>症状を選択して、段階的に診断を行い、最適な対処法をご案内します。</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        if st.button("🔧 定期点検", use_container_width=True):
-            prompt = "キャンピングカーの定期点検項目とスケジュールは？"
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            st.rerun()
+        # 機能説明カード
+        st.markdown("""
+        <div class="feature-card">
+            <h4>🎯 この機能でできること</h4>
+            <ul>
+                <li>🔍 症状に基づく段階的診断</li>
+                <li>💡 具体的な対処法の提案</li>
+                <li>🛠️ 必要な工具や部品の紹介</li>
+                <li>⚠️ 安全な作業手順の案内</li>
+                <li>📋 予防メンテナンスのアドバイス</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
         
-        if st.button("🆕 新しい会話", use_container_width=True):
-            st.session_state.messages = []
-            st.session_state.conversation_id = str(uuid.uuid4())
-            st.rerun()
-    
-    st.divider()
-    
-    # クイック質問からの自動回答処理
-    if len(st.session_state.messages) > 0 and st.session_state.messages[-1]["role"] == "user":
-        # 最新のメッセージがユーザーからの場合、AI回答を生成
-        prompt = st.session_state.messages[-1]["content"]
-        st.session_state.current_question = prompt  # 現在の質問を保存
+        # 症状診断機能
+        st.markdown("### 🔧 症状診断システム")
+        st.markdown("**下記のカテゴリから症状を選択してください：**")
         
-        # AIの回答を生成
-        with st.chat_message("assistant", avatar="https://camper-repair.net/blog/wp-content/uploads/2025/05/dummy_staff_01-150x138-1.png"):
-            with st.spinner("🔧 修理アドバイスを生成中..."):
-                generate_ai_response(prompt)
-    
-    # メインエリア
-    # チャット履歴の表示
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-    
-    # ユーザー入力（常に最後に表示）
-    if prompt := st.chat_input("キャンピングカーの修理について質問してください..."):
-        # ユーザーメッセージを追加
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        st.session_state.current_question = prompt  # 現在の質問を保存
+        # 診断データを読み込み
+        diagnostic_data = load_mock_diagnostic_data()
         
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        
-        # AIの回答を生成
-        with st.chat_message("assistant", avatar="https://camper-repair.net/blog/wp-content/uploads/2025/05/dummy_staff_01-150x138-1.png"):
-            with st.spinner("🔧 修理アドバイスを生成中..."):
-                generate_ai_response(prompt)
+        if diagnostic_data:
+            # 現在の診断ノードを取得
+            current_node_id = st.session_state.get("diagnostic_current_node")
+            
+            # 診断フローを実行
+            run_diagnostic_flow(diagnostic_data, current_node_id)
+        else:
+            st.error("診断データの読み込みに失敗しました。")
 
 if __name__ == "__main__":
     main() 
