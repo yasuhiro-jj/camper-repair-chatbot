@@ -52,9 +52,6 @@ def load_mock_diagnostic_data():
             for node_id, node_data in category_obj.items():
                 diagnostic_nodes[node_id] = node_data
 
-        st.success("✅ **モック診断機能を起動しました**")
-        st.info("外部データファイルから診断データを読み込みました。")
-        
         return {
             "diagnostic_nodes": diagnostic_nodes,
             "start_nodes": start_nodes
