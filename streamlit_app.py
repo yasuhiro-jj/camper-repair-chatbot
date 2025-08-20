@@ -606,7 +606,6 @@ def initialize_model():
     # 環境変数から直接APIキーを取得
     api_key = os.getenv("OPENAI_API_KEY")
     
-    # デバッグ用：環境変数の確認
     if not api_key:
         st.error("⚠️ OpenAI APIキーが設定されていません。")
         st.info("Streamlit CloudのSecretsで環境変数を設定してください。")
@@ -736,7 +735,6 @@ def generate_ai_response(prompt: str):
         # モデルがNoneの場合の処理
         if model is None:
             st.error("❌ モデルの初期化に失敗しました。APIキーを確認してください。")
-            st.info("デバッグ情報を展開して、環境変数の設定状況を確認してください。")
             return
         
         # RAGで関連文書を取得
@@ -760,9 +758,6 @@ def generate_ai_response(prompt: str):
         # 回答を生成
         response = model.invoke(messages)
         response_content = response.content
-        
-        # デバッグ用：元の回答を確認
-        print("Original response:", response_content)
         
         # 回答からリンクを除去して表示
         
@@ -836,9 +831,6 @@ def generate_ai_response(prompt: str):
         contact_info = "\n\n---\n\n**💬 追加の質問**\n文章が途中で切れる場合がありますので、必要に応じてもう一度お聞きください。\n\n他に何かご質問ありましたら、引き続きチャットボットに聞いてみてください。\n\n**📞 お問い合わせ**\n直接スタッフにお尋ねをご希望の方は、[お問い合わせフォーム](https://camper-repair.net/contact/)またはお電話（086-206-6622）で受付けております。\n\n【営業時間】年中無休（9:00～21:00）\n※不在時は折り返しお電話差し上げます。\n\n**🔗 関連ブログ**\nより詳しい情報は[修理ブログ一覧](https://camper-repair.net/repair/)をご覧ください。"
         clean_response += contact_info
         
-        # デバッグ用：フィルタリング後の回答を確認
-        print("Filtered response:", clean_response)
-        
         st.markdown(clean_response)
         
         # 関連ブログを表示
@@ -888,38 +880,14 @@ def generate_ai_response(prompt: str):
         
     except Exception as e:
         st.error(f"エラーが発生しました: {str(e)}")
-        st.info("詳細なエラー情報を確認するには、デバッグ情報を展開してください。")
         
         # エラーの詳細情報を表示
-        with st.expander("詳細エラー情報", expanded=False):
-            st.code(str(e))
-            st.info("このエラー情報を開発者に共有してください。")
+        # with st.expander("詳細エラー情報", expanded=False):
+        #     st.code(str(e))
+        #     st.info("このエラー情報を開発者に共有してください。")
 
 # === メインアプリケーション ===
 def main():
-    # デバッグ情報を表示（一時的）
-    with st.expander("🔧 デバッグ情報", expanded=False):
-        st.markdown("### 環境変数確認")
-        openai_key = os.getenv("OPENAI_API_KEY")
-        serp_key = os.getenv("SERP_API_KEY")
-        
-        if openai_key:
-            st.success(f"✅ OPENAI_API_KEY: 設定済み ({openai_key[:10]}...)")
-        else:
-            st.error("❌ OPENAI_API_KEY: 未設定")
-            
-        if serp_key:
-            st.success(f"✅ SERP_API_KEY: 設定済み ({serp_key[:10]}...)")
-        else:
-            st.error("❌ SERP_API_KEY: 未設定")
-        
-        # config.pyからの取得値も確認
-        st.markdown("### config.pyからの取得値")
-        if config.OPENAI_API_KEY:
-            st.success(f"✅ config.OPENAI_API_KEY: 取得済み ({config.OPENAI_API_KEY[:10]}...)")
-        else:
-            st.error("❌ config.OPENAI_API_KEY: 未取得")
-        
     # レスポンシブなタイトル（スマホ対応）とヘッダー非表示
     st.markdown("""
     <style>
