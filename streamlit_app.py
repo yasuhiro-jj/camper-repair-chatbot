@@ -120,31 +120,19 @@ def run_diagnostic_flow(diagnostic_data, current_node_id=None):
         # 利用可能なカテゴリを表示
         categories = list(start_nodes.keys())
         
-        # カテゴリを2列で表示（均一な幅で）
-        st.markdown("""
-        <style>
-        .category-list {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-        }
-        .category-column {
-            flex: 1;
-            min-width: 0;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        # カテゴリを均等に2列で表示
+        mid_point = (len(categories) + 1) // 2  # 奇数個の場合、左列に1つ多く配置
         
-        col1, col2 = st.columns([1, 1])
+        col1, col2 = st.columns(2)
         
         with col1:
             st.markdown("**📋 利用可能な診断カテゴリ：**")
-            for i, category in enumerate(categories[:len(categories)//2]):
+            for i, category in enumerate(categories[:mid_point]):
                 st.markdown(f"• {category}")
         
         with col2:
             st.markdown("&nbsp;")  # 空行
-            for i, category in enumerate(categories[len(categories)//2:]):
+            for i, category in enumerate(categories[mid_point:]):
                 st.markdown(f"• {category}")
         
         st.markdown("---")
