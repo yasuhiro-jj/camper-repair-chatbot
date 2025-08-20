@@ -120,8 +120,22 @@ def run_diagnostic_flow(diagnostic_data, current_node_id=None):
         # 利用可能なカテゴリを表示
         categories = list(start_nodes.keys())
         
-        # カテゴリを2列で表示
-        col1, col2 = st.columns(2)
+        # カテゴリを2列で表示（均一な幅で）
+        st.markdown("""
+        <style>
+        .category-list {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .category-column {
+            flex: 1;
+            min-width: 0;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        col1, col2 = st.columns([1, 1])
         
         with col1:
             st.markdown("**📋 利用可能な診断カテゴリ：**")
@@ -1130,7 +1144,7 @@ def main():
         # 症状診断の説明
         st.markdown("""
         <div class="tab-description">
-            <h3>🔧 対話式症状診断</h3>
+            <h3>🔧 症状診断システム</h3>
             <p>症状を選択して、段階的に診断を行い、最適な対処法をご案内します。</p>
         </div>
         """, unsafe_allow_html=True)
